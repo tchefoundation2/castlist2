@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Castlist</title>
+    
+    <!-- Farcaster Mini App Embed Tags -->
+    <meta name="fc:miniapp" content='{"version":"1","imageUrl":"https://castlist.netlify.app/farcaster-white.svg","button":{"title":"Open Castlist","action":{"type":"launch_frame","name":"Castlist","url":"https://castlist.netlify.app","splashImageUrl":"https://castlist.netlify.app/farcaster-white.svg","splashBackgroundColor":"#8A63D2"}}}' />
+    
+    <!-- Open Graph Meta Tags for better embed detection -->
+    <meta property="og:title" content="Castlist" />
+    <meta property="og:description" content="Transform your Readings into a Social Journey" />
+    <meta property="og:image" content="https://castlist.netlify.app/farcaster-white.svg" />
+    <meta property="og:url" content="https://castlist.netlify.app" />
+    <meta property="og:type" content="website" />
+    <!-- Farcaster SDK - Smart Detection -->
+    <!-- <script type="module" src="/farcaster-sdk.js"></script> -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
