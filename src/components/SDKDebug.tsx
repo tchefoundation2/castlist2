@@ -1,35 +1,20 @@
 import React, { useState } from 'react';
-import { useFarcasterSDK } from '../hooks/useFarcasterSDK';
+import { useFarcasterSDKSimple } from '../hooks/useFarcasterSDKSimple';
 import { useAuth } from '../hooks/useAuth';
 
 const SDKDebug: React.FC = () => {
-  const [useRealFarcaster, setUseRealFarcaster] = useState(() => {
-    return localStorage.getItem('useRealFarcaster') === 'true';
-  });
-  const { isLoaded, isReady, hasActions } = useFarcasterSDK(useRealFarcaster);
+  const { isLoaded, isReady, hasActions } = useFarcasterSDKSimple();
   const { user, isAuthenticated } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const toggleRealFarcaster = () => {
-    const newValue = !useRealFarcaster;
-    setUseRealFarcaster(newValue);
-    localStorage.setItem('useRealFarcaster', newValue.toString());
-    
-    if (newValue) {
-      console.log("🔄 Switched to Real Farcaster mode - reload page to apply");
-      // Reload page to apply changes
-      setTimeout(() => window.location.reload(), 1000);
-    } else {
-      console.log("🔄 Switched to Mock Farcaster mode - reload page to apply");
-      // Reload page to apply changes
-      setTimeout(() => window.location.reload(), 1000);
-    }
-  };
 
   // Check if we're in Farcaster preview
   const isInFarcasterPreview = document.referrer.includes('farcaster.xyz') || 
                                window.location.href.includes('farcaster.xyz') ||
                                window.location.href.includes('ngrok');
+                               
+  // Check environment
+  const isMiniApp = window.farcaster && typeof window.farcaster.signIn === 'function';
+  const isWebApp = window.FarcasterAuthKit && window.FarcasterAuthKit.AuthKitProvider;
 
   // Only show in development or when there are issues
   if (process.env.NODE_ENV === 'production' && isReady) {
@@ -54,64 +39,42 @@ const SDKDebug: React.FC = () => {
         isCollapsed ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'
       }`}>
         <div className="p-2 pt-0 space-y-1">
-          <div className="flex items-center justify-between">
-            <span>Use Real Farcaster:</span>
-            <button
-              onClick={toggleRealFarcaster}
-              className={`px-2 py-1 text-xs rounded ${
-                useRealFarcaster 
-                  ? 'bg-green-600 text-white' 
-                  : 'bg-gray-600 text-gray-300'
-              }`}
-            >
-              {useRealFarcaster ? 'ON' : 'OFF'}
-            </button>
-          </div>
-          <div>SDK Loaded: {isLoaded ? '✅' : (useRealFarcaster ? '⏳' : '❌')}</div>
-          <div>Has Actions: {hasActions ? '✅' : (useRealFarcaster ? '⏳' : '❌')}</div>
-          <div>SDK Ready: {isReady ? '✅' : (useRealFarcaster ? '⏳' : '⏳')}</div>
-          <div>Farcaster: {window.farcaster ? '✅' : (useRealFarcaster ? '⏳' : '❌')}</div>
+          <div>Environment: {isMiniApp ? '📱 Mini App' : isWebApp ? '🌐 Web App' : '💻 Development'}</div>
+          <div>SDK Loaded: {isLoaded ? '✅' : '❌'}</div>
+          <div>Has Actions: {hasActions ? '✅' : '❌'}</div>
+          <div>SDK Ready: {isReady ? '✅' : '⏳'}</div>
+          <div>Farcaster: {window.farcaster ? '✅' : '❌'}</div>
+          <div>AuthKit: {window.FarcasterAuthKit ? '✅' : '❌'}</div>
           <div>Preview Mode: {isInFarcasterPreview ? '✅' : '❌'}</div>
-          <div>Mode: {useRealFarcaster ? '🔴 Real' : '🟡 Mock'}</div>
-          {useRealFarcaster && !isLoaded && (
-            <div className="text-yellow-400 text-xs">
-              ⏳ Waiting for real Farcaster SDK...
-            </div>
+          
+          <div className="border-t border-gray-600 pt-1 mt-1">
+            <div className="font-bold text-green-400">User Info:</div>
+            <div>Authenticated: {isAuthenticated ? '✅' : '❌'}</div>
+            {user && (
+              <>
+                <div>FID: {user.fid}</div>
+                <div>Username: {user.username}</div>
+                <div>ID: {user.id}</div>
+                <div className="text-xs text-gray-400">
+                  User Type: {
+                    (user.id === 'dev-user-1' || user.fid === 12345 || user.username === 'preview_user') ? '🟡 Mock' : 
+                    '🔴 Real'
+                  }
+                </div>
+              </>
+            )}
+          </div>
+          
+          {window.farcaster?.actions && (
+            <div>Actions: {Object.keys(window.farcaster.actions).join(', ')}</div>
           )}
-                 <div className="border-t border-gray-600 pt-1 mt-1">
-                   <div className="font-bold text-green-400">User Info:</div>
-                   <div>Authenticated: {isAuthenticated ? '✅' : '❌'}</div>
-                   {user && (
-                     <>
-                       <div>FID: {user.fid}</div>
-                       <div>Username: {user.username}</div>
-                       <div>ID: {user.id}</div>
-                       <div className="text-xs text-gray-400">
-                         User Type: {
-                           user.fid === 99999 ? '🟠 Enhanced Mock' :
-                           (user.id === 'dev-user-1' || user.fid === 12345 || user.username === 'preview_user') ? '🟡 Mock' : 
-                           '🔴 Real'
-                         }
-                       </div>
-                       <div className="text-xs text-red-400">
-                         SDK Source: {
-                           window.farcaster?.signIn?.toString().includes('Enhanced mock') ? '🟠 Enhanced Mock SDK' :
-                           window.farcaster?.signIn?.toString().includes('Mock') ? '🟡 Mock SDK' : 
-                           '🔴 Real SDK'
-                         }
-                       </div>
-                     </>
-                   )}
-                 </div>
-                 {window.farcaster?.actions && (
-                   <div>Actions: {Object.keys(window.farcaster.actions).join(', ')}</div>
-                 )}
-                 <div className="text-xs text-gray-400">
-                   URL: {window.location.href.substring(0, 30)}...
-                 </div>
-                 <div className="text-xs text-gray-400">
-                   Referrer: {document.referrer.substring(0, 30)}...
-                 </div>
+          
+          <div className="text-xs text-gray-400">
+            URL: {window.location.href.substring(0, 30)}...
+          </div>
+          <div className="text-xs text-gray-400">
+            Referrer: {document.referrer.substring(0, 30)}...
+          </div>
         </div>
       </div>
     </div>

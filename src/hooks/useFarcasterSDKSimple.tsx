@@ -31,48 +31,29 @@ export const useFarcasterSDKSimple = (): FarcasterSDKInfo => {
 
   useEffect(() => {
     const checkSDK = () => {
-      console.log("🔍 Checking Farcaster SDK...");
-      console.log("window.farcaster:", window.farcaster);
-
       const isLoaded = !!window.farcaster;
       const hasActions = !!(window.farcaster?.actions);
-
-      console.log("isLoaded:", isLoaded);
-      console.log("hasActions:", hasActions);
+      const isReady = isLoaded && hasActions; // SDK is ready if loaded and has actions
 
       setSdkInfo({
         isLoaded,
-        isReady: false,
+        isReady,
         hasActions
       });
-
-      // Call ready() if SDK is available
-      if (isLoaded && hasActions && window.farcaster?.actions?.ready) {
-        try {
-          console.log("🚀 Calling sdk.actions.ready()...");
-          window.farcaster.actions.ready();
-          console.log("✅ Farcaster SDK ready() called successfully");
-          setSdkInfo(prev => ({ ...prev, isReady: true }));
-        } catch (error) {
-          console.error("❌ Error calling Farcaster SDK ready():", error);
-        }
-      } else {
-        console.log("⚠️ SDK not ready yet or actions not available");
-      }
     };
 
-    // Check immediately
+    // Check immediately and periodically
     checkSDK();
-
-    // Check when window loads
-    const handleLoad = () => {
-      setTimeout(checkSDK, 100);
-    };
-
-    window.addEventListener('load', handleLoad);
+    
+    // Check a few more times in case SDK loads asynchronously
+    const timeouts = [
+      setTimeout(checkSDK, 100),
+      setTimeout(checkSDK, 500),
+      setTimeout(checkSDK, 1000)
+    ];
     
     return () => {
-      window.removeEventListener('load', handleLoad);
+      timeouts.forEach(clearTimeout);
     };
   }, []);
 

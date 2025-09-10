@@ -63,16 +63,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (isMiniApp && window.farcaster) {
           console.log("📱 Mini App environment detected - using window.farcaster");
-          // Call sdk.actions.ready() to hide splash screen only for real SDK
-          const isRealSDK = !window.farcaster?.signIn?.toString().includes('Mock') && 
-                           !window.farcaster?.signIn?.toString().includes('Enhanced mock');
-          
-          if (window.farcaster.actions?.ready && isRealSDK) {
-            window.farcaster.actions.ready();
-            console.log("Called sdk.actions.ready() on REAL SDK");
-          } else if (window.farcaster.actions?.ready && !isRealSDK) {
-            console.log("Mock SDK detected - not calling ready() to avoid popup issues");
-          }
           
           const farcasterUser = await window.farcaster.getUser();
           if (farcasterUser) {
@@ -81,19 +71,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         } else if (isWebApp && window.FarcasterAuthKit) {
           console.log("🌐 Web App environment detected - using FarcasterAuthKit");
-          // Web app environment: use AuthKit
-          try {
-            // AuthKit doesn't have getUser() - it uses useProfile hook
-            // This will be handled by the FarcasterAuthKit component
-            console.log("AuthKit detected but getUser() not available - using component instead");
-            // AuthKit user handling is done in the component
-            console.log("AuthKit user handling done in component");
-          } catch (error) {
-            console.log("No user session in web app");
-          }
+          // AuthKit user handling is done in the FarcasterAuthKit component
+          console.log("AuthKit user handling done in component");
         } else {
-            // In dev mode, don't auto-login. Let the user choose from the login page.
-            console.warn("Farcaster SDK not found. Displaying developer login options.");
+          // In dev mode, don't auto-login. Let the user choose from the login page.
+          console.warn("Farcaster SDK not found. Displaying developer login options.");
         }
       } catch (e) {
         console.error("Error checking Farcaster session:", e);
@@ -107,9 +89,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async () => {
     setIsLoading(true);
     try {
-      // Check if user wants to use real Farcaster
-      const useRealFarcaster = localStorage.getItem('useRealFarcaster') === 'true';
-      
       // Check environment
       const isMiniApp = window.farcaster && window.farcaster.signIn;
       const isWebApp = window.FarcasterAuthKit && window.FarcasterAuthKit.AuthKitProvider;
@@ -121,41 +100,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       
       if (!isMiniApp && !isWebApp) {
-          if (useRealFarcaster) {
-            // Real Farcaster mode but SDK not available
-            console.warn("Real Farcaster mode enabled but SDK not available. Please refresh the page.");
-            setError("Real Farcaster SDK not available. Please refresh the page.");
-            setIsLoading(false);
-            return { error: "Real Farcaster SDK not available" };
-          } else {
-            // Development mode: use mock user
-            console.warn("Farcaster SDK not available. Using development mode.");
-            const mockUser: User = {
-              id: 'dev-user-1',
-              fid: 1,
-              username: 'farcaster.eth',
-              pfp_url: 'https://i.imgur.com/34Iodlt.jpg',
-              email: 'dev@example.com'
-            };
-            setUser(mockUser);
-            setIsLoading(false);
-            return {};
-          }
+        // Development mode: use mock user
+        console.warn("Farcaster SDK not available. Using development mode.");
+        const mockUser: User = {
+          id: 'dev-user-1',
+          fid: 1,
+          username: 'farcaster.eth',
+          pfp_url: 'https://i.imgur.com/34Iodlt.jpg',
+          email: 'dev@example.com'
+        };
+        setUser(mockUser);
+        setIsLoading(false);
+        return {};
       }
       
       if (isMiniApp && window.farcaster) {
         // Mini App login
-        // Call sdk.actions.ready() before sign in only for real SDK
-        const isRealSDK = !window.farcaster?.signIn?.toString().includes('Mock') && 
-                         !window.farcaster?.signIn?.toString().includes('Enhanced mock');
-        
-        if (window.farcaster.actions?.ready && isRealSDK) {
-          window.farcaster.actions.ready();
-          console.log("Called sdk.actions.ready() before login on REAL SDK");
-        } else if (window.farcaster.actions?.ready && !isRealSDK) {
-          console.log("Mock SDK detected - not calling ready() before login to avoid popup issues");
-        }
-        
         const result = await window.farcaster.signIn();
         
         if ('error' in result) {

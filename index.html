@@ -15,8 +15,45 @@
     <meta property="og:image" content="https://castlist.netlify.app/farcaster-white.svg" />
     <meta property="og:url" content="https://castlist.netlify.app" />
     <meta property="og:type" content="website" />
-    <!-- Farcaster SDK - Smart Detection -->
-    <!-- <script type="module" src="/farcaster-sdk.js"></script> -->
+    
+    <!-- Farcaster Mini App SDK -->
+    <script type="module">
+      console.log("🚀 Loading Farcaster SDKs...");
+      
+      // Load Mini App SDK for Farcaster environments
+      try {
+        const { sdk } = await import('https://esm.sh/@farcaster/miniapp-sdk@latest');
+        window.farcaster = sdk;
+        console.log("✅ Farcaster Mini App SDK loaded successfully");
+        
+        // Call ready() immediately to dismiss splash screen
+        if (sdk.actions && sdk.actions.ready) {
+          sdk.actions.ready();
+          console.log("✅ sdk.actions.ready() called successfully");
+        }
+      } catch (error) {
+        console.log("⚠️ Mini App SDK not available:", error.message);
+      }
+      
+      // Load AuthKit for standalone web apps
+      try {
+        const authKitModule = await import('https://esm.sh/@farcaster/auth-kit@latest');
+        const { AuthKitProvider, SignInButton, useProfile, useSignIn, QRCode } = authKitModule;
+        
+        window.FarcasterAuthKit = {
+          AuthKitProvider,
+          SignInButton,
+          useProfile,
+          useSignIn,
+          QRCode
+        };
+        console.log("✅ Farcaster AuthKit loaded successfully");
+      } catch (error) {
+        console.log("⚠️ AuthKit not available:", error.message);
+      }
+      
+      console.log("✅ Farcaster SDK loading completed");
+    </script>
   </head>
   <body>
     <div id="root"></div>
