@@ -88,7 +88,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsLoading(false);
         return;
     }
+    
+    console.log("🔄 Fetching all data for user:", user.username);
     setIsLoading(true);
+    
     try {
       const [publicGuides, recGuides, userGuides, userActivities] = await Promise.all([
           getPublicGuides(),
@@ -103,9 +106,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setActivities(userActivities);
       
       calculateRankingsAndStats(publicGuides, user.fid);
+      
+      console.log("✅ All data fetched successfully");
 
     } catch (error) {
-        console.error("Failed to fetch app data:", error);
+        console.error("❌ Failed to fetch app data:", error);
     } finally {
         setIsLoading(false);
     }
